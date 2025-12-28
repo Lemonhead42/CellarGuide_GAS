@@ -3,6 +3,8 @@
  * Main entry points and basic routing
  *
  * All program identifiers are in English.
+ * 
+ * nun alles sauber strukturiert und versioniert
  */
 
 /**
