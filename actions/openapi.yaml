@@ -1,0 +1,260 @@
+openapi: "3.1.0"
+info:
+  title: CellarGuide API
+  version: "1.5.1"
+  description: |
+    CellarGuide Google Apps Script API.
+    Supports inventory listing (merged Wines + Inventory), wine management and transactions.
+    Authentication via shared secret token.
+
+servers:
+  - url: "https://script.google.com/macros/s/AKfycbxICNMR1E2O_hzUtMktvVTwJW58qcuCbvqtO3OE5XgECgniB3G1rI1ozOlv-biNBYeyRQ/exec?cb=1"
+
+components:
+  schemas:
+    InventoryItem:
+      type: object
+      description: |
+        Merged view of Wines + Inventory.
+        Wine meta fields come from Wines, state fields from Inventory.
+        Inventory fields may override duplicates such as Name/Winery/StorageLocation.
+      properties:
+        WineID:
+          type: string
+        Name:
+          type: string
+          nullable: true
+        Winery:
+          type: string
+          nullable: true
+        Region:
+          type: string
+          nullable: true
+        Country:
+          type: string
+          nullable: true
+        Vintage:
+          type: integer
+          nullable: true
+        Color:
+          type: string
+          nullable: true
+        Grapes:
+          type: string
+          nullable: true
+        Style:
+          type: string
+          nullable: true
+        Sweetness:
+          type: string
+          nullable: true
+        Alcohol:
+          type: number
+          nullable: true
+        DrinkFrom:
+          type: integer
+          nullable: true
+          description: Year
+        DrinkUntil:
+          type: integer
+          nullable: true
+          description: Year
+        FoodPairing:
+          type: string
+          nullable: true
+        Occasion:
+          type: string
+          nullable: true
+        Price:
+          type: number
+          nullable: true
+        BottleSize:
+          type: string
+          nullable: true
+        StorageLocation:
+          type: string
+          nullable: true
+        Notes:
+          type: string
+          nullable: true
+        CurrentStock:
+          type: number
+          nullable: true
+        LastTransactionDate:
+          type: string
+          nullable: true
+          description: Date value formatted by Sheets (often YYYY-MM-DD)
+        IsDrinkableNow:
+          type: boolean
+          nullable: true
+        DrinkSoon:
+          type: boolean
+          nullable: true
+
+    ListInventoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            total:
+              type: integer
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/InventoryItem"
+        error:
+          type: string
+          nullable: true
+        code:
+          type: integer
+          nullable: true
+
+paths:
+  /:
+    get:
+      summary: List current wine inventory (merged Wines + Inventory)
+      operationId: listInventory
+      parameters:
+        - name: token
+          in: query
+          required: true
+          description: Secret access token
+          schema:
+            type: string
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ["listInventory"]
+      responses:
+        "200":
+          description: Inventory list with merged wine metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListInventoryResponse"
+
+    post:
+      summary: Wine and transaction operations
+      operationId: cellarService
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: |
+                action:
+                  - "addWine": add a new wine (optionally with an initial IN transaction via initialQuantity)
+                  - "updateWine": update an existing wine
+                  - "addTransaction": add a stock transaction (IN / OUT)
+              properties:
+                token:
+                  type: string
+                  description: Secret access token
+                action:
+                  type: string
+                  enum: ["addWine", "updateWine", "addTransaction"]
+
+                # --- Wine identification ---
+                wineId:
+                  type: string
+                  description: Required for updateWine and addTransaction (WineID)
+
+                # --- Wine fields (addWine / updateWine) ---
+                name:
+                  type: string
+                winery:
+                  type: string
+                region:
+                  type: string
+                country:
+                  type: string
+                vintage:
+                  type: integer
+                color:
+                  type: string
+                grapes:
+                  type: string
+                style:
+                  type: string
+                sweetness:
+                  type: string
+                alcohol:
+                  type: number
+                drinkFrom:
+                  type: integer
+                  description: Year
+                drinkUntil:
+                  type: integer
+                  description: Year
+                foodPairing:
+                  type: string
+                occasion:
+                  type: string
+                price:
+                  type: number
+                bottleSize:
+                  type: string
+                storageLocation:
+                  type: string
+                notes:
+                  type: string
+
+                # --- Optional initial stock for addWine (creates an IN transaction) ---
+                initialQuantity:
+                  type: number
+                  description: Optional. If provided (>0) CellarGuide creates an IN transaction for this wine.
+                initialTransactionDate:
+                  type: string
+                  description: Optional. YYYY-MM-DD. Defaults to today.
+                initialReason:
+                  type: string
+                  description: Optional. Reason for the initial IN transaction (e.g. Purchase, Gift).
+                initialPerson:
+                  type: string
+                  description: Optional. Person associated with the initial transaction.
+                initialComment:
+                  type: string
+                  description: Optional. Comment for the initial transaction.
+
+                # --- Transaction fields (addTransaction) ---
+                type:
+                  type: string
+                  enum: ["IN", "OUT"]
+                quantity:
+                  type: number
+                transactionDate:
+                  type: string
+                  description: Transaction date (YYYY-MM-DD, optional)
+                reason:
+                  type: string
+                person:
+                  type: string
+                comment:
+                  type: string
+              required:
+                - token
+                - action
+      responses:
+        "200":
+          description: Operation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                  error:
+                    type: string
+                    nullable: true
+                  code:
+                    type: integer
+                    nullable: true
