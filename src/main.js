@@ -10,8 +10,9 @@
 /**
  * Entry point for GET requests.
  * Usage example:
- *   /exec?token=YOUR_TOKEN              → defaults to listInventory
- *   /exec?action=ping&token=YOUR_TOKEN  → ping endpoint
+ *   /exec?token=YOUR_TOKEN                       → defaults to listInventory
+ *   /exec?action=ping&token=YOUR_TOKEN           → ping endpoint
+ *   /exec?action=listInventorySummary&token=YOUR_TOKEN → reduced inventory payload
  */
 function doGet(e) {
   return handleRequest(e, 'GET');
@@ -126,6 +127,9 @@ function handleRequest(e, method) {
 
       case 'listInventory':
         return listInventoryEndpoint(e, payload);
+
+      case 'listInventorySummary':
+        return listInventorySummaryEndpoint(e, payload);
 
       case 'addWine':
         return addWineEndpoint(e, payload);
