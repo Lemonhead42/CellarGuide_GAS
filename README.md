@@ -1,136 +1,155 @@
-# CellarGuide – Project Intent & Context
+# CellarGuide
 
-## 1. Was ist CellarGuide?
+CellarGuide is a lightweight, conversational wine cellar management system built around Google Sheets, Google Apps Script, and a CustomGPT interface.
 
-CellarGuide ist ein persönliches, leichtgewichtiges System zur Verwaltung und Nutzung eines privaten Weinkellers.
+It is designed for private wine lovers who want **clarity, enjoyment, and good decisions** – not spreadsheets for their own sake or enterprise-grade wine ERPs.
 
-Ziel ist es nicht, einen perfekten, vollständigen Weinkatalog zu führen, sondern den realen Kelleralltag abzubilden:
-
-* Welche Weine sind da?
-* In welcher Menge?
-* Was ist trinkreif?
-* Was passt heute zum Essen?
-
-Die Hauptnutzer sind private Weinliebhaber, die ihren Keller strukturiert, aber ohne Bürokratie verwalten wollen. CellarGuide löst das Problem, dass Weinbestände oft entweder nur im Kopf existieren oder in überkomplexen Tools gepflegt werden, die im Alltag keinen Spaß machen.
+👉 **Conceptual background & design philosophy:** see `PROJECT_INTENT.md`
 
 ---
 
-## 2. Grundidee & Philosophie
+## What CellarGuide Does
 
-CellarGuide folgt einer klaren Haltung:
+CellarGuide helps you:
 
-* pragmatisch statt akademisch
-* genussorientiert statt sammelgetrieben
-* erklärend statt belehrend
+* keep track of which wines you own and in what quantity
+* understand which wines are ready to drink or should be consumed soon
+* get food-oriented wine recommendations based on your *actual* cellar
+* add, correct, and manage wines using natural language
 
-Es ist kein Snobismus-Projekt und kein ERP-System für Wein. Entscheidungen sollen nachvollziehbar, aber nicht überoptimiert sein. Ein Wein soll geöffnet werden, weil er passt – nicht, weil eine Regel es verlangt.
+It combines:
 
----
-
-## 3. Mentales Modell
-
-CellarGuide trennt drei Dinge strikt voneinander:
-
-* **Wine**: die Identität und Beschreibung eines Weins (Name, Weingut, Jahrgang, Stil, Trinkfenster usw.)
-* **Transaction**: eine konkrete Bewegung (Zugang oder Abgang von Flaschen)
-* **Inventory**: der abgeleitete aktuelle Bestand
-
-Der Bestand wird niemals direkt geschrieben. Er ergibt sich immer aus der Summe der Transaktionen. Diese Trennung ist bewusst gewählt, um Nachvollziehbarkeit, Korrekturen und saubere Empfehlungen zu ermöglichen.
+* **Google Sheets** as a transparent data store
+* **Google Apps Script** as a small, explicit API layer
+* **CustomGPT** as a conversational sommelier and controller
 
 ---
 
-## 4. Rolle des LLM / CustomGPT
+## Core Concepts (Short Version)
 
-Das LLM übernimmt die Rolle eines entspannten Sommeliers und Übersetzers:
+CellarGuide deliberately separates three things:
 
-* Es ist **kein** Speicher und **keine** Datenbank.
-* Es erklärt, interpretiert, filtert und empfiehlt.
-* Es übersetzt natürliche Sprache in strukturierte Aktionen.
+* **Wine** – the identity and description of a wine (producer, vintage, style, etc.)
+* **Transaction** – a concrete stock movement (IN / OUT)
+* **Inventory** – the current cellar state, derived from transactions
 
-Das LLM trifft keine Entscheidungen ohne Datenbasis und erfindet keine Fakten. Es arbeitet immer auf Basis des aktuellen Kellerzustands, den es über definierte Schnittstellen erhält.
-
----
-
-## 5. Datenprinzipien
-
-CellarGuide folgt klaren Datenregeln:
-
-* Intern (Sheets, API, Logik): **Englisch, normiert, maschinenlesbar**
-* Extern (Interaktion, Antworten): **Deutsch, natürlich, verständlich**
-
-Übersetzung zwischen beiden Welten erfolgt ausschließlich im LLM.
-
-Weitere Prinzipien:
-
-* keine Halluzinationen
-* fehlende Daten bleiben leer
-* Annahmen werden explizit benannt
+Inventory is **never written directly**. All stock changes happen via transactions.
 
 ---
 
-## 6. Bewusste Vereinfachungen
+## Main Capabilities
 
-CellarGuide verzichtet bewusst auf Perfektion:
+### Read
 
-* Dublettenregel: gleicher Wein = Winery + Name + Vintage
-* Preise sind Schätzwerte pro Flasche, keine Buchhaltungsdaten
-* Trinkfenster sind grobe Orientierung, keine exakte Wissenschaft
+* List current cellar inventory (merged wine metadata + stock state)
+* View statistics (total bottles, drinkable wines, cellar value)
 
-Diese Vereinfachungen sind akzeptiert, dokumentiert und jederzeit korrigierbar.
+### Write
 
----
+* Add new wines
+* Update wine metadata
+* Add stock transactions (purchase, consumption, corrections)
 
-## 7. Was CellarGuide bewusst nicht ist
+### Recommend
 
-CellarGuide ist ausdrücklich:
-
-* **keine** Buchhaltungssoftware
-* **kein** Weinlexikon
-* **kein** Bewertungsportal
-* **keine** Kauf- oder Investmentberatung
-
-Es geht um Nutzung, Genuss und Übersicht – nicht um Marktpreise, Scores oder Prestige.
+* Suggest wines from the existing cellar based on food and context
+* Prefer drinkable wines and sufficient quantities
+* Explain recommendations briefly and pragmatically
 
 ---
 
-## 8. Wie mit CellarGuide interagiert wird
+## Interaction Model
 
-CellarGuide wird ausschließlich über natürliche Sprache genutzt.
+CellarGuide is used entirely via **natural language**.
 
-Grundprinzipien der Interaktion:
+Typical interactions:
 
-* Jede Interaktion beginnt mit dem Abruf des aktuellen Kellerbestands.
-* Aktionen erfolgen nur explizit, nie implizit.
-* Empfehlungen basieren primär auf vorhandenen Weinen.
+* "What do I have in my cellar right now?"
+* "Which wines should I drink soon?"
+* "What would you open for pasta with mushrooms?"
+* "Add this wine and book 6 bottles into my cellar"
 
-Die verfügbaren Schnittstellen sind bewusst minimal:
+The CustomGPT:
 
-* **listInventory**: liefert den aktuellen Kellerzustand (alle Empfehlungen basieren darauf)
-* **addWine**: legt einen Wein als Beschreibung an
-* **updateWine**: ändert Weindaten
-* **addTransaction**: verändert den Bestand über IN/OUT-Bewegungen
-
-Inventory wird niemals direkt manipuliert, sondern stets aus Transaktionen abgeleitet.
-
-Nach jeder schreibenden Aktion erklärt CellarGuide kurz, was geändert wurde und warum.
+* always starts by checking the current inventory
+* translates natural language into explicit actions
+* never invents wines, stock levels, or prices
 
 ---
 
-## 9. Erweiterbarkeit & Zukunft
+## Design Principles
 
-CellarGuide ist bewusst offen, aber nicht überladen.
-
-Mögliche Erweiterungen:
-
-* bessere Statistiken
-* feinere Empfehlungen
-* zeitliche Analysen (Trinkdruck, Entwicklung)
-
-Nicht-Ziel ist es, jede denkbare Wein-Eigenschaft abzubilden. Neue Funktionen werden nur ergänzt, wenn sie den Kern unterstützen: den eigenen Keller besser zu nutzen, nicht komplexer zu machen.
+* Pragmatic over perfect
+* Food first, not labels first
+* Explain decisions briefly
+* No hallucinations: missing data stays missing
+* English internally, German externally
 
 ---
 
-Leitgedanke:
-CellarGuide ist ein Werkzeug, das Denken abnimmt, ohne Entscheidungen abzunehmen.
-Oder anders gesagt:
-Die Antwort ist selten 42 – aber meistens trinkbar.
+## What CellarGuide Is *Not*
+
+* Not a wine marketplace
+* Not an investment or valuation tool
+* Not a wine encyclopedia
+* Not a full accounting system
+
+---
+
+## Repository Structure (Overview)
+
+* `PROJECT_INTENT.md` – conceptual background and design philosophy
+
+* `README.md` – project overview and usage
+
+*
+
+* `src/` – all Google Apps Script source files
+
+  * `main.gs` – request routing and authentication
+  * `inventory.gs` – inventory-related logic
+  * `wines.gs` – wine metadata handling
+  * `transactions.gs` – stock movement handling
+  * `sheets.gs` – Google Sheets access helpers
+  * `config.gs` – configuration and secrets access
+  * `utils.gs` – helper utilities (ID generation for wines and transactions)
+
+* `actions/` – CustomGPT action definitions
+
+  * `openapi.yaml` – OpenAPI schema for the CellarGuide API
+
+---
+
+## Daily Workflow (VS Code → Git → clasp)
+
+```bash
+# Code bearbeiten
+code .
+
+# Änderungen prüfen
+git status
+
+# Änderungen versionieren
+git add .
+git commit -m "Describe change"
+
+# Nach Google Apps Script pushen
+clasp push
+
+# (optional) Web App neu bereitstellen
+clasp deploy
+
+# Nach GitHub pushen
+git push
+```
+
+---
+
+## Status
+
+## Philosophy (One Line)
+
+CellarGuide helps you decide **what to open next**, not what to optimize forever.
+
+Sometimes the answer is 42.
+Most of the time, it’s just a good bottle at the right moment.
