@@ -1,14 +1,14 @@
 openapi: "3.1.0"
 info:
   title: CellarGuide API
-  version: "1.5.1"
+  version: "1.5.2"
   description: |
     CellarGuide Google Apps Script API.
     Supports inventory listing (merged Wines + Inventory), wine management and transactions.
     Authentication via shared secret token.
 
 servers:
-  - url: "https://script.google.com/macros/s/AKfycbxICNMR1E2O_hzUtMktvVTwJW58qcuCbvqtO3OE5XgECgniB3G1rI1ozOlv-biNBYeyRQ/exec?cb=1"
+  - url: "https://script.google.com/macros/s/AKfycbyzzWk1Jf-hge5f-fXlzLVy38VkC86OQR-kWJzFMstflEzxvMntFsw5wQvf6ohepemKLg/exec?cb=1"
 
 components:
   schemas:
@@ -116,7 +116,7 @@ paths:
   /:
     get:
       summary: List current wine inventory (merged Wines + Inventory)
-      operationId: listInventory
+      operationId: listInventorySummary
       parameters:
         - name: token
           in: query
@@ -129,7 +129,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: ["listInventory"]
+            enum: ["listInventorySummary"]
       responses:
         "200":
           description: Inventory list with merged wine metadata
