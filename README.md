@@ -123,6 +123,9 @@ The CustomGPT:
 ## Daily Workflow (VS Code → Git → clasp)
 
 ```bash
+# Repo aktualisieren (falls es Änderungen auf GitHub gibt)
+git pull
+
 # Code bearbeiten
 code .
 
