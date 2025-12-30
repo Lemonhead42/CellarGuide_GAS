@@ -5,6 +5,7 @@ CellarGuide is a lightweight, conversational wine cellar management system built
 It is designed for private wine lovers who want **clarity, enjoyment, and good decisions** – not spreadsheets for their own sake or enterprise-grade wine ERPs.
 
 👉 **Conceptual background & design philosophy:** see `PROJECT_INTENT.md`
+👉 **Data contract between Google Sheets, Google Apps Script and CustomGPT: ** see `SHEETS_SCHEMA.md`
 
 ---
 
