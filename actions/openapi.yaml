@@ -8,7 +8,7 @@ info:
     Authentication via shared secret token.
 
 servers:
-  - url: "https://script.google.com/macros/s/AKfycbyzzWk1Jf-hge5f-fXlzLVy38VkC86OQR-kWJzFMstflEzxvMntFsw5wQvf6ohepemKLg/exec?cb=1"
+  - url: "https://script.google.com/macros/s/AKfycbxpWYaYagRlh7xJ2aq0lqt1f90QmVG3vxM9wpD8QxDscorx6er87RV_KM5XXojxYiVobw/exec?cb=1"
 
 components:
   schemas:
@@ -91,6 +91,49 @@ components:
           type: boolean
           nullable: true
 
+    Statistics:
+      type: object
+      description: |
+        Key/value metrics from the Statistics sheet.
+        Keys are stable identifiers, values are formula results.
+      properties:
+        TotalPositions:
+          type: number
+          nullable: true
+        TotalBottles:
+          type: number
+          nullable: true
+        DrinkableCount:
+          type: number
+          nullable: true
+        DrinkSoonCount:
+          type: number
+          nullable: true
+        DrinkableBottles:
+          type: number
+          nullable: true
+        DrinkSoonBottles:
+          type: number
+          nullable: true
+        WhiteBottles:
+          type: number
+          nullable: true
+        RedBottles:
+          type: number
+          nullable: true
+        RoseBottles:
+          type: number
+          nullable: true
+        EmptyPositions:
+          type: number
+          nullable: true
+      additionalProperties:
+        oneOf:
+          - type: number
+          - type: boolean
+          - type: string
+          - type: "null"
+
     ListInventoryResponse:
       type: object
       properties:
@@ -105,6 +148,8 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/InventoryItem"
+            stats:
+              $ref: "#/components/schemas/Statistics"
         error:
           type: string
           nullable: true
@@ -116,7 +161,7 @@ paths:
   /:
     get:
       summary: List current wine inventory (merged Wines + Inventory)
-      operationId: listInventorySummary
+      operationId: listInventory
       parameters:
         - name: token
           in: query
@@ -129,10 +174,10 @@ paths:
           required: true
           schema:
             type: string
-            enum: ["listInventorySummary"]
+            enum: ["listInventory"]
       responses:
         "200":
-          description: Inventory list with merged wine metadata
+          description: Inventory list with merged wine metadata and statistics
           content:
             application/json:
               schema:

@@ -31,6 +31,7 @@ function getSecretToken() {
 const SHEET_NAME_WINES       = 'Wines';
 const SHEET_NAME_TRANSACTIONS = 'Transactions';
 const SHEET_NAME_INVENTORY   = 'Inventory';
+const SHEET_NAME_STATISTICS = 'Statistics';
 
 /**
  * Column indices for the Wines sheet

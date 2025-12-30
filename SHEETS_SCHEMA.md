@@ -107,7 +107,7 @@ All quantity, timing, and history information lives elsewhere.
 
 ---
 
-*Next sections will describe: Transactions and Inventory.*
+*Next sections will describe: Transactions, Inventory and Statistics.*
 
 ---
 
@@ -446,4 +446,66 @@ Inventory columns are a **merged subset** used for day-to-day management.
 
 ---
 
-*This completes the schema for Wines, Transactions, and Inventory.*
+## Sheet: Statistics
+
+### Purpose
+The **Statistics** sheet provides a deterministic, spreadsheet-native source of truth for key cellar metrics.
+
+It exists to avoid LLM calculation errors and to keep the most important numbers (bottles, counts, distributions) reproducible and testable directly in Google Sheets.
+
+---
+
+### Ownership & Responsibility
+
+**Written by**
+- Google Sheets formulas only
+
+**Read by**
+- Apps Script API (via `listInventory` response enrichment)
+- CustomGPT for summary views
+
+**Never written by**
+- manual edits in the Value column
+- API endpoints
+
+---
+
+### Structure
+
+The sheet is a simple key/value table:
+
+| Column | Name | Type | Description |
+|------|------|------|-------------|
+| A | Key | string | Stable identifier for a metric |
+| B | Value | number / boolean / string | Formula result |
+| C | Comment | string | Human-readable explanation |
+
+Keys must be stable over time. Values are derived by formulas.
+
+---
+
+### Keys (Top 10)
+
+| Key | Value Formula (German locale) | Comment |
+|---|---|---|
+| TotalPositions | `=ANZAHL2(Inventory!A2:A)` | Number of distinct wines in Inventory |
+| TotalBottles | `=SUMME(Inventory!G2:G)` | Total bottles in cellar |
+| DrinkableCount | `=ZÄHLENWENN(Inventory!I2:I;WAHR)` | Wines currently drinkable |
+| DrinkSoonCount | `=ZÄHLENWENN(Inventory!J2:J;WAHR)` | Wines to drink soon |
+| DrinkableBottles | `=SUMMEWENNS(Inventory!G2:G;Inventory!I2:I;WAHR)` | Bottles that are drinkable |
+| DrinkSoonBottles | `=SUMMEWENNS(Inventory!G2:G;Inventory!J2:J;WAHR)` | Bottles to drink soon |
+| WhiteBottles | `=SUMMEWENNS(Inventory!G2:G;Inventory!E2:E;"White")` | Bottles of white wine |
+| RedBottles | `=SUMMEWENNS(Inventory!G2:G;Inventory!E2:E;"Red")` | Bottles of red wine |
+| RoseBottles | `=SUMMEWENNS(Inventory!G2:G;Inventory!E2:E;"Rosé")` | Bottles of rosé |
+| EmptyPositions | `=ZÄHLENWENN(Inventory!G2:G;0)` | Wines with stock = 0 |
+
+---
+
+### Notes
+
+- The API should treat the Statistics sheet as the canonical source for summary numbers.
+- The CustomGPT must use `data.stats` from the API response instead of recalculating.
+- Additional keys can be added over time without breaking existing consumers, as long as existing keys remain unchanged.
+
+
+*This completes the schema for Wines, Transactions, Inventory and Statistics.*

@@ -10,6 +10,7 @@
  * Returns merged objects:
  * - all fields from Wines
  * - plus Inventory fields (override if same key exists)
+ * - plus Statistics sheet metrics (data.stats)
  */
 function listInventoryEndpoint(e, payload) {
   try {
@@ -18,11 +19,20 @@ function listInventoryEndpoint(e, payload) {
       return buildJsonResponse(result.error);
     }
 
+    var stats = {};
+    try {
+      stats = readStatistics();
+    } catch (statsErr) {
+      // Don't fail the whole endpoint if stats can't be read
+      stats = { _error: 'Failed to read statistics', _details: String(statsErr) };
+    }
+
     return buildJsonResponse({
       success: true,
       data: {
         total: result.items.length,
-        items: result.items
+        items: result.items,
+        stats: stats
       }
     });
 

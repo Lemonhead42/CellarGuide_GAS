@@ -117,3 +117,13 @@ function wineExistsById_(wineId) {
   }
   return false;
 }
+
+
+function getStatisticsSheet() {
+  var ss = getSpreadsheet();
+  var sheet = ss.getSheetByName(SHEET_NAME_STATISTICS);
+  if (!sheet) {
+    throw new Error('Statistics sheet not found: ' + SHEET_NAME_STATISTICS);
+  }
+  return sheet;
+}

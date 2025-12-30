@@ -4,8 +4,7 @@ CellarGuide is a lightweight, conversational wine cellar management system built
 
 It is designed for private wine lovers who want **clarity, enjoyment, and good decisions** – not spreadsheets for their own sake or enterprise-grade wine ERPs.
 
-👉 **Conceptual background & design philosophy:** see `PROJECT_INTENT.md`
-
+👉 **Conceptual background & design philosophy:** see `PROJECT_INTENT.md`  
 👉 **Data contract between Google Sheets, Google Apps Script and CustomGPT:** see `SHEETS_SCHEMA.md`
 
 ---
@@ -18,6 +17,7 @@ CellarGuide helps you:
 * understand which wines are ready to drink or should be consumed soon
 * get food-oriented wine recommendations based on your *actual* cellar
 * add, correct, and manage wines using natural language
+* see reliable cellar statistics without manual calculations
 
 It combines:
 
@@ -29,13 +29,15 @@ It combines:
 
 ## Core Concepts (Short Version)
 
-CellarGuide deliberately separates three things:
+CellarGuide deliberately separates four things:
 
 * **Wine** – the identity and description of a wine (producer, vintage, style, etc.)
 * **Transaction** – a concrete stock movement (IN / OUT)
 * **Inventory** – the current cellar state, derived from transactions
+* **Statistics** – deterministic summary metrics derived from Inventory
 
-Inventory is **never written directly**. All stock changes happen via transactions.
+Inventory and Statistics are **never written directly**.  
+All stock changes happen via transactions.
 
 ---
 
@@ -44,7 +46,7 @@ Inventory is **never written directly**. All stock changes happen via transactio
 ### Read
 
 * List current cellar inventory (merged wine metadata + stock state)
-* View statistics (total bottles, drinkable wines, cellar value)
+* View deterministic statistics (total bottles, drinkable wines, distributions, cellar value)
 
 ### Write
 
@@ -57,6 +59,19 @@ Inventory is **never written directly**. All stock changes happen via transactio
 * Suggest wines from the existing cellar based on food and context
 * Prefer drinkable wines and sufficient quantities
 * Explain recommendations briefly and pragmatically
+
+---
+
+## Statistics (Why They Exist)
+
+Cellar statistics are calculated **inside Google Sheets**, not by the LLM.
+
+This ensures that:
+* bottle counts are always correct
+* summaries are reproducible and testable
+* the CustomGPT never “does math in its head”
+
+Statistics are exposed via the same API call as the inventory and consumed read-only by the CustomGPT.
 
 ---
 
@@ -73,9 +88,9 @@ Typical interactions:
 
 The CustomGPT:
 
-* always starts by checking the current inventory
+* always starts by checking the current inventory and statistics
 * translates natural language into explicit actions
-* never invents wines, stock levels, or prices
+* never invents wines, stock levels, prices, or numbers
 
 ---
 
@@ -86,6 +101,7 @@ The CustomGPT:
 * Explain decisions briefly
 * No hallucinations: missing data stays missing
 * English internally, German externally
+* Deterministic numbers beat clever estimates
 
 ---
 
@@ -100,24 +116,21 @@ The CustomGPT:
 
 ## Repository Structure (Overview)
 
-* `PROJECT_INTENT.md` – conceptual background and design philosophy
+* `PROJECT_INTENT.md` – conceptual background and design philosophy  
+* `SHEETS_SCHEMA.md` – Google Sheets schema and data contract  
+* `README.md` – project overview and usage  
 
-* `README.md` – project overview and usage
+* `src/` – all Google Apps Script source files  
+  * `main.gs` – request routing and authentication  
+  * `inventory.gs` – inventory-related logic  
+  * `wines.gs` – wine metadata handling  
+  * `transactions.gs` – stock movement handling  
+  * `statistics.gs` – statistics reader logic  
+  * `sheets.gs` – Google Sheets access helpers  
+  * `config.gs` – configuration and secrets access  
+  * `utils.gs` – helper utilities (ID generation)
 
-*
-
-* `src/` – all Google Apps Script source files
-
-  * `main.gs` – request routing and authentication
-  * `inventory.gs` – inventory-related logic
-  * `wines.gs` – wine metadata handling
-  * `transactions.gs` – stock movement handling
-  * `sheets.gs` – Google Sheets access helpers
-  * `config.gs` – configuration and secrets access
-  * `utils.gs` – helper utilities (ID generation for wines and transactions)
-
-* `actions/` – CustomGPT action definitions
-
+* `actions/` – CustomGPT action definitions  
   * `openapi.yaml` – OpenAPI schema for the CellarGuide API
 
 ---
@@ -157,4 +170,4 @@ git push
 CellarGuide helps you decide **what to open next**, not what to optimize forever.
 
 Sometimes the answer is 42.
-Most of the time, it’s just a good bottle at the right moment.
+Most of the time, it’s just a bottle "vum Chaddonay vum Rings" at the right moment.
